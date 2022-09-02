@@ -3,6 +3,7 @@ from typing import List, Callable
 import matplotlib.pyplot as pp
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
+import scipy.constants as const
 
 
 Scale = List[float]
@@ -12,10 +13,16 @@ class GridFigure:
     figure: Figure
     axes: List[List[Axes]]
 
-    def __init__(self, xscales: List[Scale], yscales: List[Scale]) -> None:
+    def __init__(self,
+            xscales: List[Scale], yscales: List[Scale],
+            width_mm: float, height_mm: float,
+            ) -> None:
+        INCHES_PER_MM = const.milli / const.inch
         nrows = len(yscales)
         ncols = len(xscales)
-        self.figure, self.axes = pp.subplots(nrows, ncols, squeeze=False)
+        self.figure, self.axes = pp.subplots(nrows, ncols, squeeze=False,
+            figsize = (width_mm * INCHES_PER_MM, height_mm * INCHES_PER_MM),
+        )
         self._plot()
         for row, ys in zip(self.axes, yscales):
             for ax, xs in zip(row, xscales):
@@ -83,6 +90,11 @@ class TrigFigure(GridFigure):
             self.axes[row][0].plot(x, np.sin((1 + row) * x * np.pi) * (1 + row))
             self.axes[row][1].plot(x * 2, np.cos((1 + row) * x * np.pi * 2) * (1 + row))
 
-tf = TrigFigure([[0, 1, 2], [0, 2, 4]], [[-1, 0, 1], [-2, 0, 2], [-3, 0, 3]])
+tf = TrigFigure(
+    [[0, 1, 2], [0, 2, 4]],
+    [[-1, 0, 1], [-2, 0, 2], [-3, 0, 3]],
+    width_mm=160,
+    height_mm=120,
+    )
 
 pp.show()
