@@ -11,6 +11,20 @@ class Scale(NamedTuple):
     ticks: List[float]
 
 
+class FracBorders:
+    start_frac: float
+    end_frac: float
+    space_frac: float
+
+    def __init__(self, size_mm: float, num: int,
+            start_mm: float, mid_mm: float, end_mm: float):
+        self.start_frac = start_mm / size_mm
+        self.end_frac = 1 - end_mm / size_mm
+        total_space_mm = start_mm + end_mm + (num - 1) * mid_mm
+        self.space_frac = num * mid_mm / (size_mm - total_space_mm)
+
+
+
 class GridFigure:
     figure: Figure
     axes: List[List[Axes]]
@@ -31,25 +45,24 @@ class GridFigure:
         INCHES_PER_MM = const.milli / const.inch
         nrows = len(y_scales)
         ncols = len(x_scales)
-        total_hspace_mm = \
-            left_margin_mm + \
-            right_margin_mm + \
-            (ncols - 1) * horizontal_gap_mm
-        total_wspace_mm = \
-            top_margin_mm + \
-            bottom_margin_mm + \
-            (nrows - 1) * vertical_gap_mm
+        h_borders = FracBorders(
+            size_mm = width_mm,
+            num = ncols,
+            start_mm = left_margin_mm,
+            mid_mm = horizontal_gap_mm,
+            end_mm = right_margin_mm,
+        )
+        v_borders = FracBorders(
+            size_mm = height_mm,
+            num = nrows,
+            start_mm = bottom_margin_mm,
+            mid_mm = vertical_gap_mm,
+            end_mm = top_margin_mm,
+        )
         self.figure, self.axes = pp.subplots(nrows, ncols, squeeze=False,
             figsize = (width_mm * INCHES_PER_MM, height_mm * INCHES_PER_MM),
             dpi = dpi,
-            gridspec_kw = {
-                "left": left_margin_mm / width_mm,
-                "right": 1 - right_margin_mm / width_mm,
-                "top": 1 - top_margin_mm / height_mm,
-                "bottom": bottom_margin_mm / height_mm,
-                "wspace": ncols * horizontal_gap_mm / (width_mm - total_hspace_mm),
-                "hspace": nrows * vertical_gap_mm / (height_mm - total_wspace_mm),
-            }
+            gridspec_kw = _create_gridspec(h_borders, v_borders)
         )
         self.__setup_titles(column_titles)
         self.__setup_labels([v.label for v in x_scales], [v.label for v in y_scales])
@@ -88,6 +101,16 @@ class GridFigure:
             for ax in row[col_slice]:
                 func(ax)
 
+
+def _create_gridspec(h_borders: FracBorders, v_borders: FracBorders):
+    return {
+        "left": h_borders.start_frac,
+        "right": h_borders.end_frac,
+        "top": v_borders.end_frac,
+        "bottom": v_borders.start_frac,
+        "wspace": h_borders.space_frac,
+        "hspace": v_borders.space_frac,
+    }
 
 def _remove_xticklabels(ax: Axes) -> None:
     ax.set_xticklabels([])
@@ -139,7 +162,7 @@ tf = TrigFigure(
     column_titles=["foo", "boo"],
     width_mm=160,
     height_mm=120,
-    top_margin_mm=20,
+    top_margin_mm=15,
     bottom_margin_mm=15,
     horizontal_gap_mm=2,
     vertical_gap_mm=2,
