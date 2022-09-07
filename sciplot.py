@@ -1,12 +1,14 @@
 import numpy as np
-from typing import List, Callable
+from typing import List, Callable, NamedTuple
 import matplotlib.pyplot as pp
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 import scipy.constants as const
 
 
-Scale = List[float]
+class Scale(NamedTuple):
+    label: str
+    ticks: List[float]
 
 
 class GridFigure:
@@ -14,8 +16,10 @@ class GridFigure:
     axes: List[List[Axes]]
 
     def __init__(self,
-            xscales: List[Scale], yscales: List[Scale],
-            width_mm: float, height_mm: float,
+            x_scales: List[Scale], y_scales: List[Scale],
+            captions: List[str] = [],
+            width_mm: float = 80,
+            height_mm: float = 80,
             dpi: float = 100,
             left_margin_mm: float = 15,
             right_margin_mm: float = 5,
@@ -25,8 +29,8 @@ class GridFigure:
             vertical_gap_mm: float = 5,
             ) -> None:
         INCHES_PER_MM = const.milli / const.inch
-        nrows = len(yscales)
-        ncols = len(xscales)
+        nrows = len(y_scales)
+        ncols = len(x_scales)
         total_hspace_mm = \
             left_margin_mm + \
             right_margin_mm + \
@@ -47,9 +51,16 @@ class GridFigure:
                 "hspace": nrows * vertical_gap_mm / (height_mm - total_wspace_mm),
             }
         )
-        for row, ys in zip(self.axes, yscales):
-            for ax, xs in zip(row, xscales):
-                _set_scales(ax, xs, ys)
+        for row, ys in zip(self.axes, y_scales):
+            for ax, xs in zip(row, x_scales):
+                _set_ticks(ax, xs.ticks, ys.ticks)
+        for row, ys in zip(self.axes, y_scales):
+            row[0].set_ylabel(ys.label)
+        for ax, xs in zip(self.axes[-1], x_scales):
+            ax.set_xlabel(xs.label)
+        if captions != []:
+            for ax, caption in zip(self.axes[0], captions):
+                ax.set_title(caption)
         self.__apply_to_axes(_set_ticks_in)
         self.__apply_to_axes(_remove_xticklabels, row_slice=slice(-1))
         self.__apply_to_axes(_remove_yticklabels, col_slice=slice(1, None))
@@ -89,11 +100,11 @@ def _tighten_yticklabels(ax: Axes) -> None:
     t[0].label.set_verticalalignment("bottom")
     t[-1].label.set_verticalalignment("top")
 
-def _set_scales(ax: Axes, xs: Scale, ys: Scale) -> None:
-    ax.set_xlim(xs[0], xs[-1])
-    ax.set_xticks(xs)
-    ax.set_ylim(ys[0], ys[-1])
-    ax.set_yticks(ys)
+def _set_ticks(ax: Axes, x_ticks: List[float], y_ticks: List[float]) -> None:
+    ax.set_xlim(x_ticks[0], x_ticks[-1])
+    ax.set_xticks(x_ticks)
+    ax.set_ylim(y_ticks[0], y_ticks[-1])
+    ax.set_yticks(y_ticks)
 
 def _ensure_slice(value: slice | int) -> slice:
     if type(value) is slice:
@@ -115,13 +126,15 @@ class TrigFigure(GridFigure):
             self.axes[row][1].plot(x * 2, np.cos((1 + row) * x * np.pi * 2) * (1 + row))
 
 tf = TrigFigure(
-    [[0, 1, 2], [0, 2, 4]],
-    [[-1, 0, 1], [-2, 0, 2], [-3, 0, 3]],
+    [Scale("a", [0, 1, 2]), Scale("b", [0, 2, 4])],
+    [Scale("c", [-1, 0, 1]), Scale("d", [-2, 0, 2]), Scale("e", [-3, 0, 3])],
+    captions=["foo", "boo"],
     width_mm=160,
     height_mm=120,
-    bottom_margin_mm=20,
-    horizontal_gap_mm=10,
-    vertical_gap_mm=1,
+    top_margin_mm=20,
+    bottom_margin_mm=15,
+    horizontal_gap_mm=2,
+    vertical_gap_mm=2,
     )
 
 pp.show()
