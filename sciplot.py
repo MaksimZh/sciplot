@@ -16,12 +16,36 @@ class GridFigure:
     def __init__(self,
             xscales: List[Scale], yscales: List[Scale],
             width_mm: float, height_mm: float,
+            dpi: float = 100,
+            left_margin_mm: float = 15,
+            right_margin_mm: float = 5,
+            top_margin_mm: float = 5,
+            bottom_margin_mm: float = 10,
+            horizontal_gap_mm: float = 5,
+            vertical_gap_mm: float = 5,
             ) -> None:
         INCHES_PER_MM = const.milli / const.inch
         nrows = len(yscales)
         ncols = len(xscales)
+        total_hspace_mm = \
+            left_margin_mm + \
+            right_margin_mm + \
+            (ncols - 1) * horizontal_gap_mm
+        total_wspace_mm = \
+            top_margin_mm + \
+            bottom_margin_mm + \
+            (nrows - 1) * vertical_gap_mm
         self.figure, self.axes = pp.subplots(nrows, ncols, squeeze=False,
             figsize = (width_mm * INCHES_PER_MM, height_mm * INCHES_PER_MM),
+            dpi = dpi,
+            gridspec_kw = {
+                "left": left_margin_mm / width_mm,
+                "right": 1 - right_margin_mm / width_mm,
+                "top": 1 - top_margin_mm / height_mm,
+                "bottom": bottom_margin_mm / height_mm,
+                "wspace": ncols * horizontal_gap_mm / (width_mm - total_hspace_mm),
+                "hspace": nrows * vertical_gap_mm / (height_mm - total_wspace_mm),
+            }
         )
         for row, ys in zip(self.axes, yscales):
             for ax, xs in zip(row, xscales):
@@ -95,6 +119,9 @@ tf = TrigFigure(
     [[-1, 0, 1], [-2, 0, 2], [-3, 0, 3]],
     width_mm=160,
     height_mm=120,
+    bottom_margin_mm=20,
+    horizontal_gap_mm=10,
+    vertical_gap_mm=1,
     )
 
 pp.show()
