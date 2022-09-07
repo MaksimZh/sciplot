@@ -51,25 +51,33 @@ class GridFigure:
                 "hspace": nrows * vertical_gap_mm / (height_mm - total_wspace_mm),
             }
         )
-        for row, ys in zip(self.axes, y_scales):
-            for ax, xs in zip(row, x_scales):
-                _set_ticks(ax, xs.ticks, ys.ticks)
-        for row, ys in zip(self.axes, y_scales):
-            row[0].set_ylabel(ys.label)
-        for ax, xs in zip(self.axes[-1], x_scales):
-            ax.set_xlabel(xs.label)
-        if column_titles != []:
-            for ax, caption in zip(self.axes[0], column_titles):
-                ax.set_title(caption)
+        self.__setup_titles(column_titles)
+        self.__setup_labels([v.label for v in x_scales], [v.label for v in y_scales])
+        self.__setup_ticks([v.ticks for v in x_scales], [v.ticks for v in y_scales])
+        self._plot()
+
+    def _plot(self) -> None:
+        pass
+
+    def __setup_titles(self, column_titles: List[str]):
+        for ax, title in zip(self.axes[0], column_titles):
+            ax.set_title(title)
+
+    def __setup_labels(self, x_labels: List[str], y_labels: List[str]):
+        for ax, label in zip(self.axes[-1], x_labels):
+            ax.set_xlabel(label)
+        for row, label in zip(self.axes, y_labels):
+            row[0].set_ylabel(label)
+
+    def __setup_ticks(self, x_ticks: List[List[float]], y_ticks: List[List[float]]):
+        for row, yt in zip(self.axes, y_ticks):
+            for ax, xt in zip(row, x_ticks):
+                _set_ticks(ax, xt, yt)
         self.__apply_to_axes(_set_ticks_in)
         self.__apply_to_axes(_remove_xticklabels, row_slice=slice(-1))
         self.__apply_to_axes(_remove_yticklabels, col_slice=slice(1, None))
         self.__apply_to_axes(_tighten_xticklabels, row_slice=-1)
         self.__apply_to_axes(_tighten_yticklabels, col_slice=0)
-        self._plot()
-
-    def _plot(self) -> None:
-        pass
 
     def __apply_to_axes(self, func: Callable[[Axes], None],
             row_slice: slice | int = slice(None),
