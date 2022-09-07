@@ -42,7 +42,6 @@ class GridFigure:
             horizontal_gap_mm: float = 5,
             vertical_gap_mm: float = 5,
             ) -> None:
-        INCHES_PER_MM = const.milli / const.inch
         nrows = len(y_scales)
         ncols = len(x_scales)
         h_borders = FracBorders(
@@ -59,10 +58,11 @@ class GridFigure:
             mid_mm = vertical_gap_mm,
             end_mm = top_margin_mm,
         )
+        INCHES_PER_MM = const.milli / const.inch
         self.figure, self.axes = pp.subplots(nrows, ncols, squeeze=False,
             figsize = (width_mm * INCHES_PER_MM, height_mm * INCHES_PER_MM),
             dpi = dpi,
-            gridspec_kw = _create_gridspec(h_borders, v_borders)
+            gridspec_kw = _create_gridspec(h_borders, v_borders),
         )
         self.__setup_titles(column_titles)
         self.__setup_labels([v.label for v in x_scales], [v.label for v in y_scales])
