@@ -23,7 +23,6 @@ class GridFigure:
         self.figure, self.axes = pp.subplots(nrows, ncols, squeeze=False,
             figsize = (width_mm * INCHES_PER_MM, height_mm * INCHES_PER_MM),
         )
-        self._plot()
         for row, ys in zip(self.axes, yscales):
             for ax, xs in zip(row, xscales):
                 _set_scales(ax, xs, ys)
@@ -32,6 +31,7 @@ class GridFigure:
         self.__apply_to_axes(_remove_yticklabels, col_slice=slice(1, None))
         self.__apply_to_axes(_tighten_xticklabels, row_slice=-1)
         self.__apply_to_axes(_tighten_yticklabels, col_slice=0)
+        self._plot()
 
     def _plot(self) -> None:
         pass
