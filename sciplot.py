@@ -17,7 +17,7 @@ class GridFigure:
 
     def __init__(self,
             x_scales: List[Scale], y_scales: List[Scale],
-            captions: List[str] = [],
+            column_titles: List[str] = [],
             width_mm: float = 80,
             height_mm: float = 80,
             dpi: float = 100,
@@ -58,8 +58,8 @@ class GridFigure:
             row[0].set_ylabel(ys.label)
         for ax, xs in zip(self.axes[-1], x_scales):
             ax.set_xlabel(xs.label)
-        if captions != []:
-            for ax, caption in zip(self.axes[0], captions):
+        if column_titles != []:
+            for ax, caption in zip(self.axes[0], column_titles):
                 ax.set_title(caption)
         self.__apply_to_axes(_set_ticks_in)
         self.__apply_to_axes(_remove_xticklabels, row_slice=slice(-1))
@@ -128,7 +128,7 @@ class TrigFigure(GridFigure):
 tf = TrigFigure(
     [Scale("a", [0, 1, 2]), Scale("b", [0, 2, 4])],
     [Scale("c", [-1, 0, 1]), Scale("d", [-2, 0, 2]), Scale("e", [-3, 0, 3])],
-    captions=["foo", "boo"],
+    column_titles=["foo", "boo"],
     width_mm=160,
     height_mm=120,
     top_margin_mm=20,
